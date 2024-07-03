@@ -1,4 +1,4 @@
-# Blender addon for data visualisation
+# Data visualization Blender add-on 
 
 *TODO:*
 
