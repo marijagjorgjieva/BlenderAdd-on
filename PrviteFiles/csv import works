@@ -1,0 +1,80 @@
+bl_info = {
+    "name": "CSV Scatter Plot",
+    "blender": (3, 0, 0),
+    "category": "Object",
+}
+
+import bpy
+import csv
+import os
+
+class ImportCSVOperator(bpy.types.Operator):
+    bl_idname = "object.import_csv"
+    bl_label = "Import CSV"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, "Filepath not set")
+            return {'CANCELLED'}
+
+        if not os.path.exists(self.filepath):
+            self.report({'ERROR'}, f"File not found: {self.filepath}")
+            return {'CANCELLED'}
+
+        self.import_csv(self.filepath)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def import_csv(self, filepath):
+        # Clear existing objects
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete(use_global=False)
+
+        # Read CSV file
+        with open(filepath, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                x = float(row['X'])
+                y = float(row['Y'])
+                z = float(row['Z'])
+                label = row['Label']
+
+                bpy.ops.mesh.primitive_uv_sphere_add(radius=0.1, location=(x, y, z))
+
+                obj = bpy.context.object
+                obj.name = label
+
+class CSVImporterPanel(bpy.types.Panel):
+    bl_idname = "OBJECT_PT_csv_importer"
+    bl_label = "CSV Importer"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Tools'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.import_csv")
+
+def menu_func_import(self, context):
+    self.layout.operator(ImportCSVOperator.bl_idname, text="CSV Scatter Plot")
+
+def register():
+    bpy.utils.register_class(ImportCSVOperator)
+    bpy.utils.register_class(CSVImporterPanel)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+
+def unregister():
+    bpy.utils.unregister_class(ImportCSVOperator)
+    bpy.utils.unregister_class(CSVImporterPanel)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+
+if __name__ == "__main__":
+    register()
+
