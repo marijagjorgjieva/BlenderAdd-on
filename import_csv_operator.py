@@ -20,7 +20,7 @@ class ImportCSVOperator(bpy.types.Operator):
             self.report({'ERROR'}, f"File not found: {self.filepath}")
             return {'CANCELLED'}
 
-        # Pass context to import_csv method
+       
         self.import_csv(context, self.filepath)
         return {'FINISHED'}
 
@@ -34,7 +34,6 @@ class ImportCSVOperator(bpy.types.Operator):
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete(use_global=False)
 
-        # Read CSV file
         with open(filepath, 'r') as file:
             reader = csv.DictReader(file)
             for row in reader:
